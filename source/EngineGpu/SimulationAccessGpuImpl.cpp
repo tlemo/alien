@@ -77,9 +77,8 @@ void SimulationAccessGpuImpl::requirePixelImage(IntRect rect, QImagePtr const& t
     scheduleJob(boost::make_shared<_GetPixelImageJob>(getObjectId(), rect, target, mutex));
 }
 
-void SimulationAccessGpuImpl::requireVectorImage(IntRect rect, double zoom, QImagePtr const & target, std::mutex & mutex)
+void SimulationAccessGpuImpl::requireVectorImage(RealRect rect, double zoom, QImagePtr const & target, std::mutex & mutex)
 {
-
     scheduleJob(boost::make_shared<_GetVectorImageJob>(getObjectId(), rect, zoom, target, mutex));
 }
 

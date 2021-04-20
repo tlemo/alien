@@ -128,14 +128,14 @@ class _GetVectorImageJob
     : public _CudaJob
 {
 public:
-    _GetVectorImageJob(string const& originId, IntRect const& rect, double zoom, QImagePtr const& targetImage, std::mutex& mutex)
+    _GetVectorImageJob(string const& originId, RealRect const& rect, double zoom, QImagePtr const& targetImage, std::mutex& mutex)
         : _CudaJob(originId, true), _zoom(zoom), _targetImage(targetImage), _mutex(mutex), _rect(rect)
     {
     }
 
     virtual ~_GetVectorImageJob() = default;
 
-    IntRect const& getRect() const
+    RealRect const& getRect() const
     {
         return _rect;
     }
@@ -156,7 +156,7 @@ public:
     }
 
 private:
-    IntRect _rect;
+    RealRect _rect;
     double _zoom;
     QImagePtr _targetImage;
     std::mutex& _mutex;

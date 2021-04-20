@@ -119,6 +119,7 @@ void ItemUniverseView::setZoomFactor(double zoomFactor)
     CATCH;
 }
 
+/*
 QVector2D ItemUniverseView::getCenterPositionOfScreen() const
 {
     TRY;
@@ -137,6 +138,7 @@ void ItemUniverseView::centerTo(QVector2D const & position)
     _graphicsView->centerOn(scenePosition.x(), scenePosition.y());
     CATCH;
 }
+*/
 
 void ItemUniverseView::toggleCenterSelection(bool value)
 {

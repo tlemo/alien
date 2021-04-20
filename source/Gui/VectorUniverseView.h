@@ -13,7 +13,7 @@ class VectorUniverseView : public UniverseView
 {
     Q_OBJECT
 public:
-    VectorUniverseView(QGraphicsView* graphicsView, QObject* parent = nullptr);
+    VectorUniverseView(SimulationViewWidget* simulationViewWidget, QObject* parent = nullptr);
     virtual ~VectorUniverseView() = default;
 
     virtual void init(
@@ -32,9 +32,9 @@ public:
     double getZoomFactor() const override;
     void setZoomFactor(double zoomFactor) override;
 
-    QVector2D getCenterPositionOfScreen() const override;
+    std::pair<double, double> getCenterPositionOfScreen() const override;
 
-    void centerTo(QVector2D const& position) override;
+    void centerTo(std::pair<double, double> const& position) override;
 
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;
@@ -50,15 +50,14 @@ private:
 
     list<QMetaObject::Connection> _connections;
 
-    QGraphicsView* _graphicsView = nullptr;
+    SimulationViewWidget* _simulationViewWidget = nullptr;
     QGraphicsScene* _scene = nullptr;
 
     SimulationAccess* _access = nullptr;
     DataRepository* _repository = nullptr;
     SimulationController* _controller = nullptr;
-    VectorViewport* _viewport = nullptr;
 
-    VectorImageSectionItem* _imageSectionItem = nullptr;
+    VectorImageSectionItem* _item = nullptr;
 
     Notifier* _notifier = nullptr;
     double _zoomFactor = 0.0;

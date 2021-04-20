@@ -6,13 +6,13 @@ class VectorViewport : public ViewportInterface
 {
     Q_OBJECT
 public:
-    VectorViewport(QGraphicsView* view, QObject* parent = nullptr);
+    VectorViewport(SimulationViewWidget* simulationViewWidget, QObject* parent = nullptr);
     virtual ~VectorViewport() = default;
 
-    void setZoomFactor(double zoomFactor);
     QRectF getRect() const override;
 
+
 private:
-    QGraphicsView* _view;
+    SimulationViewWidget* _simulationViewWidget;
     double _zoomFactor = 0.0;
 };

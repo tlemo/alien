@@ -27,16 +27,15 @@ SimulationViewWidget::SimulationViewWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    _pixelUniverse = new PixelUniverseView(ui->simulationView, this);
-    _vectorUniverse = new VectorUniverseView(ui->simulationView, this);
-    _itemUniverse = new ItemUniverseView(ui->simulationView, this);
-
     ui->simulationView->horizontalScrollBar()->setStyleSheet(Const::ScrollbarStyleSheet);
     ui->simulationView->verticalScrollBar()->setStyleSheet(Const::ScrollbarStyleSheet);
 
     auto startupScene = new QGraphicsScene(this);
     startupScene->setBackgroundBrush(QBrush(Const::UniverseColor));
     ui->simulationView->setScene(startupScene);
+    ui->simulationView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->simulationView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->simulationView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 }
 
 SimulationViewWidget::~SimulationViewWidget()
@@ -44,136 +43,42 @@ SimulationViewWidget::~SimulationViewWidget()
     delete ui;
 }
 
-void SimulationViewWidget::init(Notifier* notifier, SimulationController* controller, SimulationAccess* access, DataRepository* repository)
+void SimulationViewWidget::resize(IntVector2D const& sceneSize)
 {
-    auto const InitialZoomFactor = 4.0;
-
-	_controller = controller;
-
-    _pixelUniverse->init(notifier, controller, access, repository);
-    _vectorUniverse->init(notifier, controller, access, repository);
-    _itemUniverse->init(notifier, controller, repository);
-
-    _vectorUniverse->activate(InitialZoomFactor);
-
-    auto const size = _controller->getContext()->getSpaceProperties()->getSize();
-    _vectorUniverse->centerTo({ static_cast<float>(size.x) / 2, static_cast<float>(size.y) / 2 });
-
-    _vectorUniverse->connectView();
-    _vectorUniverse->refresh();
-
-    Q_EMIT zoomFactorChanged(InitialZoomFactor);
+    auto viewSize = getViewSize();
+    ui->horizontalScrollBar->setRange(0, sceneSize.x - viewSize.x);
+    ui->horizontalScrollBar->setPageStep(viewSize.x);
+    ui->verticalScrollBar->setRange(0, sceneSize.y - viewSize.y);
+    ui->verticalScrollBar->setPageStep(viewSize.y);
 }
 
-void SimulationViewWidget::connectView()
+IntVector2D SimulationViewWidget::getViewSize() const
 {
-    getActiveUniverseView()->connectView();
+    return {ui->simulationView->width(), ui->simulationView->height()};
 }
 
-void SimulationViewWidget::disconnectView()
+void SimulationViewWidget::setScene(QGraphicsScene* scene)
 {
-    getActiveUniverseView()->disconnectView();
+    ui->simulationView->setScene(scene);
+    ui->simulationView->resetTransform();
 }
 
-void SimulationViewWidget::refresh()
+int SimulationViewWidget::getHorizontalScrollPosition() const
 {
-    getActiveUniverseView()->refresh();
+    return ui->horizontalScrollBar->sliderPosition();
 }
 
-ActiveView SimulationViewWidget::getActiveView() const
+void SimulationViewWidget::setHorizontalScrollPosition(int pos)
 {
-    if (_pixelUniverse->isActivated()) {
-        return ActiveView::PixelScene;
-    }
-    if (_vectorUniverse->isActivated()) {
-        return ActiveView::VectorScene;
-    }
-    if (_itemUniverse->isActivated()) {
-        return ActiveView::ItemScene;
-    }
-
-    THROW_NOT_IMPLEMENTED();
+    ui->horizontalScrollBar->setSliderPosition(pos);
 }
 
-void SimulationViewWidget::setActiveScene (ActiveView activeScene)
+int SimulationViewWidget::getVerticalScrollPosition() const
 {
-    auto scrollPosX = ui->simulationView->horizontalScrollBar()->value();
-    auto scrollPosY = ui->simulationView->verticalScrollBar()->value();
-
-    auto zoom = getZoomFactor();
-
-    auto view = getView(activeScene);
-    view->activate(zoom);
-
-    ui->simulationView->horizontalScrollBar()->setValue(scrollPosX); //workaround since UniverseView::centerTo has bad precision
-    ui->simulationView->verticalScrollBar()->setValue(scrollPosY);
+    return ui->verticalScrollBar->sliderPosition();
 }
 
-double SimulationViewWidget::getZoomFactor()
+void SimulationViewWidget::setVerticalScrollPosition(int pos)
 {
-    return getActiveUniverseView()->getZoomFactor();
+    ui->verticalScrollBar->setSliderPosition(pos);
 }
-
-void SimulationViewWidget::setZoomFactor(double factor)
-{
-    auto activeView = getActiveUniverseView();
-    auto screenCenterPos = activeView->getCenterPositionOfScreen();
-    activeView->setZoomFactor(factor);
-    activeView->centerTo(screenCenterPos);
-
-    Q_EMIT zoomFactorChanged(factor);
-}
-
-QVector2D SimulationViewWidget::getViewCenterWithIncrement ()
-{
-	auto screenCenterPos = getActiveUniverseView()->getCenterPositionOfScreen();
-
-    QVector2D posIncrement(_posIncrement, -_posIncrement);
-    _posIncrement = _posIncrement + 1.0;
-    if (_posIncrement > 9.0) {
-        _posIncrement = 0.0;
-    }
-    return screenCenterPos + posIncrement;
-}
-
-void SimulationViewWidget::toggleCenterSelection(bool value)
-{
-    auto activeUniverseView = getActiveUniverseView();
-    auto itemUniverseView = dynamic_cast<ItemUniverseView*>(activeUniverseView);
-    CHECK(itemUniverseView);
-
-    itemUniverseView->toggleCenterSelection(value);
-}
-
-UniverseView * SimulationViewWidget::getActiveUniverseView() const
-{
-    if (_pixelUniverse->isActivated()) {
-        return _pixelUniverse;
-    }
-    if (_vectorUniverse->isActivated()) {
-        return _vectorUniverse;
-    }
-    if (_itemUniverse->isActivated()) {
-        return _itemUniverse;
-    }
-
-    THROW_NOT_IMPLEMENTED();
-}
-
-UniverseView * SimulationViewWidget::getView(ActiveView activeView) const
-{
-    if (ActiveView::PixelScene == activeView) {
-        return _pixelUniverse;
-    }
-    if (ActiveView::VectorScene == activeView) {
-        return _vectorUniverse;
-    }
-    if (ActiveView::ItemScene== activeView) {
-        return _itemUniverse;
-    }
-
-    THROW_NOT_IMPLEMENTED();
-}
-
-
-

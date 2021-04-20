@@ -31,6 +31,11 @@ __device__ __inline__ int2 mapUniversePosToImagePos(int2 const& rectUpperLeft, f
             static_cast<int>((pos.y - rectUpperLeft.y)*zoom) };
 }
 
+__device__ __inline__ int2 mapUniversePosToImagePos(float2 const& rectUpperLeft, float2 const& pos, float zoom)
+{
+    return {static_cast<int>((pos.x - rectUpperLeft.x) * zoom), static_cast<int>((pos.y - rectUpperLeft.y) * zoom)};
+}
+
 __device__ __inline__ unsigned int calcColor(Cell* cell)
 {
     unsigned char colorCode = cell->metadata.color;
@@ -208,8 +213,8 @@ __global__ void drawClusters_pixelStyle(
 
 __global__ void drawClusters_vectorStyle(
     int2 universeSize,
-    int2 rectUpperLeft,
-    int2 rectLowerRight,
+    float2 rectUpperLeft,
+    float2 rectLowerRight,
     Array<Cluster*> clusters,
     unsigned int* imageData,
     int2 imageSize,
@@ -331,8 +336,8 @@ __global__ void drawParticles_pixelStyle(
 
 __global__ void drawParticles_vectorStyle(
     int2 universeSize,
-    int2 rectUpperLeft,
-    int2 rectLowerRight,
+    float2 rectUpperLeft,
+    float2 rectLowerRight,
     Array<Particle*> particles,
     unsigned int* imageData,
     int2 imageSize,
@@ -435,7 +440,8 @@ __global__ void cudaDrawImage_pixelStyle(int2 rectUpperLeft, int2 rectLowerRight
     }
 }
 
-__global__ void drawImage_vectorStyle(int2 rectUpperLeft, int2 rectLowerRight, int2 imageSize, float zoom, SimulationData data)
+__global__ void
+drawImage_vectorStyle(float2 rectUpperLeft, float2 rectLowerRight, int2 imageSize, float zoom, SimulationData data)
 {
     unsigned int* targetImage;
     if (cudaExecutionParameters.imageGlow) {

@@ -104,6 +104,7 @@ void PixelUniverseView::setZoomFactor(double zoomFactor)
     _graphicsView->scale(_zoomFactor, _zoomFactor);
 }
 
+/*
 QVector2D PixelUniverseView::getCenterPositionOfScreen() const
 {
     auto const result = _graphicsView->mapToScene(static_cast<double>(_graphicsView->width()) / 2.0, static_cast<double>(_graphicsView->height()) / 2.0);
@@ -114,6 +115,7 @@ void PixelUniverseView::centerTo(QVector2D const & position)
 {
     _graphicsView->centerOn(position.x(), position.y());
 }
+*/
 
 bool PixelUniverseView::eventFilter(QObject* object, QEvent* event)
 {

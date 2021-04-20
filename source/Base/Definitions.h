@@ -79,6 +79,21 @@ struct BASE_EXPORT IntVector2D {
 
 };
 
+struct RealRect;
+struct BASE_EXPORT RealVector2D
+{
+    float x = 0;
+    float y = 0;
+
+    RealVector2D() = default;
+    RealVector2D(std::initializer_list<float> l);
+    RealVector2D(QVector2D const& vec);
+    QVector2D toQVector2D();
+    RealVector2D& restrictToRect(RealRect const& rect);
+    bool operator==(RealVector2D const& vec);
+    void operator-=(RealVector2D const& vec);
+};
+
 BASE_EXPORT std::ostream& operator << (std::ostream& os, const IntVector2D& vec);
 
 struct BASE_EXPORT IntRect {
@@ -88,19 +103,26 @@ struct BASE_EXPORT IntRect {
 	IntRect() = default;
 	IntRect(std::initializer_list<IntVector2D> l);
 	IntRect(QRectF const& rect);
-	inline bool isContained(IntVector2D const& p) const;
-	inline IntVector2D center() const;
+	bool isContained(IntVector2D const& p) const
+    {
+        return p1.x <= p.x && p1.y <= p.y && p.x <= p2.x && p.y <= p2.y;
+    }
+
+	IntVector2D center() const { return IntVector2D({(p1.x + p2.x) / 2, (p1.y + p2.y) / 2}); }
 };
 
-bool IntRect::isContained(IntVector2D const &p) const
+struct BASE_EXPORT RealRect
 {
-	return p1.x <= p.x && p1.y <= p.y && p.x <= p2.x && p.y <= p2.y;
-}
+    RealVector2D p1;
+    RealVector2D p2;
 
-IntVector2D IntRect::center() const
-{
-	return IntVector2D({ (p1.x + p2.x) / 2, (p1.y + p2.y) / 2 });
-}
+    RealRect() = default;
+    RealRect(std::initializer_list<RealVector2D> l);
+    RealRect(QRectF const& rect);
+    bool isContained(RealVector2D const& p) const { return p1.x <= p.x && p1.y <= p.y && p.x <= p2.x && p.y <= p2.y; }
+
+    RealVector2D center() const { return RealVector2D({(p1.x + p2.x) / 2.0f, (p1.y + p2.y) / 2.0f}); }
+};
 
 
 #define SET_CHILD(previousChild, newChild)\

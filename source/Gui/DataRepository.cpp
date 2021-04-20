@@ -665,7 +665,7 @@ void DataRepository::updateParticle(ParticleDescription const & particle)
 void DataRepository::requireDataUpdateFromSimulation(IntRect const& rect)
 {
     TRY;
-	_rect = rect;
+    _rect = {{static_cast<float>(rect.p1.x), static_cast<float>(rect.p1.y)}, {static_cast<float>(rect.p2.x), static_cast<float>(rect.p2.y)}};
 	ResolveDescription resolveDesc;
 	resolveDesc.resolveCellLinks = true;
 	_access->requireData(rect, resolveDesc);
@@ -674,11 +674,15 @@ void DataRepository::requireDataUpdateFromSimulation(IntRect const& rect)
 
 void DataRepository::requirePixelImageFromSimulation(IntRect const & rect, QImagePtr const& target)
 {
-	_rect = rect;
-	_access->requirePixelImage(rect, target, _mutex);
+    TRY;
+    _rect = {
+        {static_cast<float>(rect.p1.x), static_cast<float>(rect.p1.y)},
+        {static_cast<float>(rect.p2.x), static_cast<float>(rect.p2.y)}};
+    _access->requirePixelImage(rect, target, _mutex);
+    CATCH;
 }
 
-void DataRepository::requireVectorImageFromSimulation(IntRect const & rect, double zoom, QImagePtr const & target)
+void DataRepository::requireVectorImageFromSimulation(RealRect const & rect, double zoom, QImagePtr const & target)
 {
     _rect = rect;
    _access->requireVectorImage(rect, zoom, target, _mutex);

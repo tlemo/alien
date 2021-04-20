@@ -174,7 +174,10 @@ void CudaSimulation::getPixelImage(int2 const & rectUpperLeft, int2 const & rect
         imageData, _cudaSimulationData->finalImageData, sizeof(unsigned int) * width * height, cudaMemcpyDeviceToHost));
 }
 
-void CudaSimulation::getVectorImage(int2 const & rectUpperLeft, int2 const & rectLowerRight, int2 const& imageSize, 
+void CudaSimulation::getVectorImage(
+    float2 const& rectUpperLeft,
+    float2 const& rectLowerRight,
+    int2 const& imageSize, 
     double zoom, unsigned char * imageData)
 {
     if (imageSize.x * imageSize.y > _cudaSimulationData->numImageBytes) {

@@ -14,40 +14,21 @@ class SimulationViewWidget : public QWidget
 {
     Q_OBJECT
 public:
-    SimulationViewWidget(QWidget *parent = 0);
+    SimulationViewWidget(QWidget *parent = nullptr);
     virtual ~SimulationViewWidget();
 
-	void init(Notifier* notifier, SimulationController* controller, SimulationAccess* access, DataRepository* manipulator);
-    
-    void connectView();
-    void disconnectView();
-    void refresh();
+    void resize(IntVector2D const& sceneSize);
 
-    ActiveView getActiveView() const;
-    void setActiveScene(ActiveView activeScene);
+    IntVector2D getViewSize() const;
+    void setScene(QGraphicsScene* scene);
 
-    double getZoomFactor();
-    void setZoomFactor(double factor);
-
-	QVector2D getViewCenterWithIncrement ();
-
-	void toggleCenterSelection(bool value);
-
-    Q_SIGNAL void zoomFactorChanged(double factor);
+    int getHorizontalScrollPosition() const;
+    void setHorizontalScrollPosition(int pos);
+    int getVerticalScrollPosition() const;
+    void setVerticalScrollPosition(int pos);
 
 private:
-    UniverseView* getActiveUniverseView() const;
-    UniverseView* getView(ActiveView activeView) const;
-
     Ui::SimulationViewWidget *ui;
-
-	SimulationController* _controller = nullptr;
-
-    PixelUniverseView* _pixelUniverse = nullptr;
-    VectorUniverseView* _vectorUniverse = nullptr;
-    ItemUniverseView* _itemUniverse = nullptr;
-
-    qreal _posIncrement = 0.0;
 };
 
 

@@ -49,6 +49,7 @@
 #include "WebSimulationController.h"
 #include "NewDiscDialog.h"
 #include "ColorizeDialogController.h"
+#include "SimulationViewController.h"
 
 ActionController::ActionController(QObject * parent)
 	: QObject(parent)
@@ -60,7 +61,7 @@ void ActionController::init(
     MainController* mainController,
     MainModel* mainModel,
     MainView* mainView,
-    SimulationViewWidget* visualEditor,
+    SimulationViewController* visualEditor,
     Serializer* serializer,
     GeneralInfoController* infoController,
     DataEditController* dataEditor,
@@ -77,7 +78,7 @@ void ActionController::init(
 	_mainController = mainController;
 	_mainModel = mainModel;
 	_mainView = mainView;
-	_simulationViewWidget = visualEditor;
+	_simulationViewController = visualEditor;
 	_serializer = serializer;
 	_infoController = infoController;
 	_dataEditor = dataEditor;
@@ -204,7 +205,7 @@ void ActionController::onStepBackward()
 	if (emptyStack) {
 		_model->getActionHolder()->actionRunStepBackward->setEnabled(false);
 	}
-	_simulationViewWidget->refresh();
+	_simulationViewController->refresh();
 
     loggingService->logMessage(Priority::Unimportant, "calculate one time step backward finished");
 }
@@ -226,7 +227,7 @@ void ActionController::onRestoreSnapshot()
     loggingService->logMessage(Priority::Important, "load snapshot");
 
 	_mainController->onRestoreSnapshot();
-	_simulationViewWidget->refresh();
+	_simulationViewController->refresh();
 
 	loggingService->logMessage(Priority::Unimportant, "load snapshot finished");
 }
@@ -278,20 +279,20 @@ void ActionController::onZoomInClicked()
     auto loggingService = ServiceLocator::getInstance().getService<LoggingService>();
     loggingService->logMessage(Priority::Unimportant, "zoom in");
  
-	auto zoomFactor = _simulationViewWidget->getZoomFactor();
-	_simulationViewWidget->setZoomFactor(zoomFactor * 2);
+	auto zoomFactor = _simulationViewController->getZoomFactor();
+	_simulationViewController->setZoomFactor(zoomFactor * 1.05);
 
 	loggingService->logMessage(Priority::Unimportant, "zoom in finished");
 
     if(!_model->isEditMode()) {
-        if (_simulationViewWidget->getZoomFactor() > Const::ZoomLevelForAutomaticEditorSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
+        if (_simulationViewController->getZoomFactor() > Const::ZoomLevelForAutomaticEditorSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
             _model->getActionHolder()->actionEditor->toggle();
         }
         else {
             setPixelOrVectorView();
         }
     }
-    _simulationViewWidget->refresh();
+    _simulationViewController->refresh();
     updateActionsEnableState();
 }
 
@@ -300,13 +301,13 @@ void ActionController::onZoomOutClicked()
     auto loggingService = ServiceLocator::getInstance().getService<LoggingService>();
     loggingService->logMessage(Priority::Unimportant, "zoom out");
 
-	auto zoomFactor = _simulationViewWidget->getZoomFactor();
-    _simulationViewWidget->setZoomFactor(zoomFactor / 2);
+	auto zoomFactor = _simulationViewController->getZoomFactor();
+    _simulationViewController->setZoomFactor(zoomFactor / 1.05);
 
 	loggingService->logMessage(Priority::Unimportant, "zoom out finished");
 
     if (_model->isEditMode()) {
-        if (_simulationViewWidget->getZoomFactor() > Const::ZoomLevelForAutomaticEditorSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
+        if (_simulationViewController->getZoomFactor() > Const::ZoomLevelForAutomaticEditorSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
         }
         else {
             _model->getActionHolder()->actionEditor->toggle();
@@ -315,7 +316,7 @@ void ActionController::onZoomOutClicked()
     else {
         setPixelOrVectorView();
     }
-    _simulationViewWidget->refresh();
+    _simulationViewController->refresh();
     updateActionsEnableState();
 }
 
@@ -379,16 +380,16 @@ void ActionController::onToggleEditorMode(bool toggled)
         loggingService->logMessage(Priority::Unimportant, "activate editor mode");
 
 		_infoController->setRendering(GeneralInfoController::Rendering::Item);
-        _simulationViewWidget->disconnectView();
-        _simulationViewWidget->setActiveScene(ActiveView::ItemScene);
-        _simulationViewWidget->connectView();
+        _simulationViewController->disconnectView();
+        _simulationViewController->setActiveScene(ActiveView::ItemScene);
+        _simulationViewController->connectView();
     }
 	else {
         loggingService->logMessage(Priority::Unimportant, "deactivate editor mode");
 
 		setPixelOrVectorView();
 	}
-    _simulationViewWidget->refresh();
+    _simulationViewController->refresh();
     updateActionsEnableState();
 
 	Q_EMIT _toolbar->getContext()->show(toggled);
@@ -947,8 +948,8 @@ void ActionController::onCenterSelection(bool centerSelection)
         loggingService->logMessage(Priority::Unimportant, "deactivate centering selection");
     }
 
-	_simulationViewWidget->toggleCenterSelection(centerSelection);
-    _simulationViewWidget->refresh();
+	_simulationViewController->toggleCenterSelection(centerSelection);
+    _simulationViewController->refresh();
 
     loggingService->logMessage(Priority::Unimportant, "toggle centering selection finished");
 }
@@ -1296,7 +1297,7 @@ void ActionController::updateActionsEnableState()
 	bool collectionCopied = _model->isCollectionCopied();
 
 	auto actions = _model->getActionHolder();
-    actions->actionEditor->setEnabled(_simulationViewWidget->getZoomFactor() > Const::MinZoomLevelForEditor - FLOATINGPOINT_MEDIUM_PRECISION);
+    actions->actionEditor->setEnabled(_simulationViewController->getZoomFactor() > Const::MinZoomLevelForEditor - FLOATINGPOINT_MEDIUM_PRECISION);
     actions->actionGlowEffect->setEnabled(!editMode);
 	actions->actionShowCellInfo->setEnabled(editMode);
     actions->actionCenterSelection->setEnabled(editMode);
@@ -1330,26 +1331,26 @@ void ActionController::updateActionsEnableState()
 void ActionController::setPixelOrVectorView()
 {
 	auto loggingService = ServiceLocator::getInstance().getService<LoggingService>();
-    if (_simulationViewWidget->getZoomFactor() > Const::ZoomLevelForAutomaticVectorViewSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
-        if (ActiveView::VectorScene != _simulationViewWidget->getActiveView()) {
+    if (_simulationViewController->getZoomFactor() > Const::ZoomLevelForAutomaticVectorViewSwitch - FLOATINGPOINT_MEDIUM_PRECISION) {
+        if (ActiveView::VectorScene != _simulationViewController->getActiveView()) {
             loggingService->logMessage(Priority::Unimportant, "toggle to vector rendering");
 
             _infoController->setRendering(GeneralInfoController::Rendering::Vector);
-            _simulationViewWidget->disconnectView();
-            _simulationViewWidget->setActiveScene(ActiveView::VectorScene);
-            _simulationViewWidget->connectView();
+            _simulationViewController->disconnectView();
+            _simulationViewController->setActiveScene(ActiveView::VectorScene);
+            _simulationViewController->connectView();
 
 		    loggingService->logMessage(Priority::Unimportant, "toggle to vector rendering finished");
         }
     }
     else {
-        if (ActiveView::PixelScene != _simulationViewWidget->getActiveView()) {
+        if (ActiveView::PixelScene != _simulationViewController->getActiveView()) {
             loggingService->logMessage(Priority::Unimportant, "toggle to pixel rendering");
 
 			_infoController->setRendering(GeneralInfoController::Rendering::Pixel);
-            _simulationViewWidget->disconnectView();
-            _simulationViewWidget->setActiveScene(ActiveView::PixelScene);
-            _simulationViewWidget->connectView();
+            _simulationViewController->disconnectView();
+            _simulationViewController->setActiveScene(ActiveView::PixelScene);
+            _simulationViewController->connectView();
 
 			loggingService->logMessage(Priority::Unimportant, "toggle to pixel rendering finished");
         }

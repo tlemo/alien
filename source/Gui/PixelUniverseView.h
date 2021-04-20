@@ -33,9 +33,11 @@ public:
     double getZoomFactor() const override;
     void setZoomFactor(double zoomFactor) override;
 
+/*
     QVector2D getCenterPositionOfScreen() const override;
 
     void centerTo(QVector2D const& position) override;
+*/
 
 protected:
     bool eventFilter(QObject* object, QEvent* event) override;

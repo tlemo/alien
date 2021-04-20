@@ -69,7 +69,7 @@ public:
 
 	virtual void requireDataUpdateFromSimulation(IntRect const& rect);
 	virtual void requirePixelImageFromSimulation(IntRect const& rect, QImagePtr const& target);
-    virtual void requireVectorImageFromSimulation(IntRect const& rect, double zoom, QImagePtr const& target);
+    virtual void requireVectorImageFromSimulation(RealRect const& rect, double zoom, QImagePtr const& target);
     virtual std::mutex& getImageMutex();
 
 	Q_SIGNAL void imageReady();
@@ -99,7 +99,7 @@ private:
 	unordered_set<uint64_t> _selectedParticleIds;
 
 	DescriptionNavigator _navi;
-	IntRect _rect;
+	RealRect _rect;
 	IntVector2D _universeSize;
     std::mutex _mutex;
 };

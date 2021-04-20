@@ -19,7 +19,6 @@ public:
     virtual double getZoomFactor() const = 0;
     virtual void setZoomFactor(double zoomFactor) = 0;
 
-    virtual QVector2D getCenterPositionOfScreen() const = 0;
-
-    virtual void centerTo(QVector2D const& position) = 0;
+    virtual std::pair<double, double> getCenterPositionOfScreen() const = 0;
+    virtual void centerTo(std::pair<double, double> const& position) = 0;
 };

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>SimulationViewWidget</class>
- <widget class="QWidget" name="simulationViewWidget">
+ <widget class="QWidget" name="SimulationViewWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>835</width>
+    <width>587</width>
     <height>697</height>
    </rect>
   </property>
@@ -29,6 +29,13 @@
    <property name="spacing">
     <number>0</number>
    </property>
+   <item row="2" column="0">
+    <widget class="QScrollBar" name="horizontalScrollBar">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QGraphicsView" name="simulationView">
      <property name="palette">
@@ -67,6 +74,16 @@
         </colorrole>
        </disabled>
       </palette>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" rowspan="2">
+    <widget class="QScrollBar" name="verticalScrollBar">
+     <property name="maximum">
+      <number>9999</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
     </widget>
    </item>

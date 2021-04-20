@@ -31,9 +31,10 @@ public:
     double getZoomFactor() const override;
     void setZoomFactor(double zoomFactor) override;
 
+/*
     QVector2D getCenterPositionOfScreen() const override;
-
     void centerTo(QVector2D const& position) override;
+*/
 
 	virtual void toggleCenterSelection(bool value);
 

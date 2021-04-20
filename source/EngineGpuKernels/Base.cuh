@@ -137,6 +137,13 @@ __host__ __device__ __inline__ bool isContainedInRect(int2 const& rectUpperLeft,
 }
 
 __host__ __device__ __inline__ bool
+isContainedInRect(float2 const& rectUpperLeft, float2 const& rectLowerRight, float2 const& pos)
+{
+    return pos.x >= rectUpperLeft.x && pos.x <= rectLowerRight.x && pos.y >= rectUpperLeft.y
+        && pos.y <= rectLowerRight.y;
+}
+
+__host__ __device__ __inline__ bool
 isContainedInRect(int2 const& rectUpperLeft, int2 const& rectLowerRight, int2 const& pos, int const& boundary = 0)
 {
     return pos.x >= rectUpperLeft.x + boundary

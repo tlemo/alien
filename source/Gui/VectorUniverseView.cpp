@@ -1,4 +1,5 @@
 #include <QGraphicsView>
+#include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QScrollBar>
@@ -21,9 +22,11 @@
 #include "VectorImageSectionItem.h"
 #include "VectorUniverseView.h"
 #include "VectorViewport.h"
+#include "SimulationViewWidget.h"
 
-VectorUniverseView::VectorUniverseView(QGraphicsView* graphicsView, QObject* parent)
-    : UniverseView(parent), _graphicsView(graphicsView)
+VectorUniverseView::VectorUniverseView(SimulationViewWidget* simulationViewWidget, QObject* parent)
+    : UniverseView(parent)
+    , _simulationViewWidget(simulationViewWidget)
 {
     _scene = new QGraphicsScene(parent);
     _scene->setBackgroundBrush(QBrush(Const::BackgroundColor));
@@ -42,17 +45,7 @@ void VectorUniverseView::init(
     _repository = repository;
     _notifier = notifier;
 
-    delete _viewport;
-    _viewport = new VectorViewport(_graphicsView, this);
-
     SET_CHILD(_access, access);
-
-    delete _imageSectionItem;
-
-    auto const size = _controller->getContext()->getSpaceProperties()->getSize();
-    _imageSectionItem = new VectorImageSectionItem(_viewport, size, repository->getImageMutex());
-
-    _scene->addItem(_imageSectionItem);
 }
 
 void VectorUniverseView::connectView()
@@ -61,8 +54,10 @@ void VectorUniverseView::connectView()
     _connections.push_back(connect(_controller, &SimulationController::nextFrameCalculated, this, &VectorUniverseView::requestImage));
     _connections.push_back(connect(_notifier, &Notifier::notifyDataRepositoryChanged, this, &VectorUniverseView::receivedNotifications));
     _connections.push_back(connect(_repository, &DataRepository::imageReady, this, &VectorUniverseView::imageReady, Qt::QueuedConnection));
+/*
     _connections.push_back(connect(_graphicsView->horizontalScrollBar(), &QScrollBar::valueChanged, this, &VectorUniverseView::scrolled));
     _connections.push_back(connect(_graphicsView->verticalScrollBar(), &QScrollBar::valueChanged, this, &VectorUniverseView::scrolled));
+*/
 }
 
 void VectorUniverseView::disconnectView()
@@ -80,15 +75,27 @@ void VectorUniverseView::refresh()
 
 bool VectorUniverseView::isActivated() const
 {
-    return _graphicsView->scene() == _scene;
+    return true/*_graphicsView->scene() == _scene*/;
 }
 
 void VectorUniverseView::activate(double zoomFactor)
 {
-    _graphicsView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    _graphicsView->setScene(_scene);
-    _graphicsView->resetTransform();
+    delete _item;
 
+    auto worldSize = _controller->getContext()->getSpaceProperties()->getSize();
+   _simulationViewWidget->resize({static_cast<int>(worldSize.x * zoomFactor), static_cast<int>(worldSize.y * zoomFactor)});
+
+    auto viewSize = _simulationViewWidget->getViewSize();
+/*
+   IntVector2D minSize{
+        std::min(viewSize.x, static_cast<int>(worldSize.x * zoomFactor)), 
+        std::min(viewSize.y, static_cast<int>(worldSize.y * zoomFactor))};
+*/
+
+    _item = new VectorImageSectionItem(viewSize, _repository->getImageMutex());
+    _scene->addItem(_item);
+
+    _simulationViewWidget->setScene(_scene);
     setZoomFactor(zoomFactor);
 }
 
@@ -100,23 +107,40 @@ double VectorUniverseView::getZoomFactor() const
 void VectorUniverseView::setZoomFactor(double zoomFactor)
 {
     _zoomFactor = zoomFactor;
-    auto const size = _controller->getContext()->getSpaceProperties()->getSize();
-    _scene->setSceneRect(0, 0, size.x * zoomFactor, size.y * zoomFactor);
-    _viewport->setZoomFactor(zoomFactor);
-    _imageSectionItem->setZoomFactor(zoomFactor);
+    auto worldSize = _controller->getContext()->getSpaceProperties()->getSize();
+    _simulationViewWidget->resize(
+        {static_cast<int>(worldSize.x * zoomFactor), static_cast<int>(worldSize.y * zoomFactor)});
+    
+//    auto const size = _controller->getContext()->getSpaceProperties()->getSize();
+//    _scene->setSceneRect(0, 0, size.x * zoomFactor, size.y * zoomFactor);
+//    _viewport->setZoomFactor(zoomFactor);
 }
 
-QVector2D VectorUniverseView::getCenterPositionOfScreen() const
+std::pair<double, double> VectorUniverseView::getCenterPositionOfScreen() const
 {
+    auto viewSize = _simulationViewWidget->getViewSize();
+
+    auto x = (static_cast<double>(_simulationViewWidget->getHorizontalScrollPosition()) + static_cast<double>(viewSize.x) / 2.0) / _zoomFactor;
+    auto y = (static_cast<double>(_simulationViewWidget->getVerticalScrollPosition()) + static_cast<double>(viewSize.y) / 2.0) / _zoomFactor;
+    return std::make_pair(x, y);
+    /*
     auto const width = static_cast<double>(_graphicsView->width());
     auto const height = static_cast<double>(_graphicsView->height());
     auto const result = _graphicsView->mapToScene(width / 2.0, height / 2.0);
     return{ static_cast<float>(result.x() / _zoomFactor), static_cast<float>(result.y() / _zoomFactor)};
+*/
 }
 
-void VectorUniverseView::centerTo(QVector2D const & position)
+void VectorUniverseView::centerTo(std::pair<double, double> const& position)
 {
+    auto viewSize = _simulationViewWidget->getViewSize();
+
+    _simulationViewWidget->setHorizontalScrollPosition(static_cast<int>(position.first * _zoomFactor - static_cast<double>(viewSize.x) / 2.0));
+    _simulationViewWidget->setVerticalScrollPosition(static_cast<int>(position.second * _zoomFactor - static_cast<double>(viewSize.y) / 2.0));
+    /*
+    _centerPosition = position;
     _graphicsView->centerOn(position.x() * _zoomFactor, position.y() * _zoomFactor);
+*/
 }
 
 bool VectorUniverseView::eventFilter(QObject * object, QEvent * event)
@@ -193,7 +217,16 @@ void VectorUniverseView::receivedNotifications(set<Receiver> const & targets)
 void VectorUniverseView::requestImage()
 {
     if (!_connections.empty()) {
-        _repository->requireVectorImageFromSimulation(_viewport->getRect(), getZoomFactor(), _imageSectionItem->getImageOfVisibleRect());
+        auto viewSize = _simulationViewWidget->getViewSize();
+        auto left = static_cast<float>(_simulationViewWidget->getHorizontalScrollPosition() / _zoomFactor);
+        auto top = static_cast<float>(_simulationViewWidget->getVerticalScrollPosition() / _zoomFactor);
+        _repository->requireVectorImageFromSimulation(
+            RealRect{
+                {left, top},
+                {left + static_cast<float>(viewSize.x / _zoomFactor),
+                 top + static_cast<float>(viewSize.y / _zoomFactor)}},
+            getZoomFactor(),
+            _item->getImageOfVisibleRect());
     }
 }
 

@@ -13,9 +13,13 @@ public:
 	ActionController(QObject * parent = nullptr);
 	virtual ~ActionController() = default;
 
-	void init(MainController* mainController, MainModel* mainModel, MainView* mainView, SimulationViewWidget* visualEditor
-		, Serializer* serializer, GeneralInfoController* infoController, DataEditController* dataEditor, ToolbarController* toolbar
-		, MonitorController* monitor, DataRepository* repository, Notifier* notifier, WebSimulationController* websimController);
+	void init(
+        MainController* mainController,
+        MainModel* mainModel,
+        MainView* mainView,
+        SimulationViewController* visualEditor, 
+		Serializer* serializer, GeneralInfoController* infoController, DataEditController* dataEditor, ToolbarController* toolbar, 
+		MonitorController* monitor, DataRepository* repository, Notifier* notifier, WebSimulationController* websimController);
 
     void close();
 
@@ -97,7 +101,7 @@ private:
 	Notifier* _notifier = nullptr;
 	Serializer* _serializer = nullptr;
 
-	SimulationViewWidget* _simulationViewWidget = nullptr;
+	SimulationViewController* _simulationViewController = nullptr;
 	DataEditController* _dataEditor = nullptr;
 	GeneralInfoController* _infoController = nullptr;
 	ToolbarController* _toolbar = nullptr;
