@@ -151,6 +151,9 @@
     <ClInclude Include="..\..\..\source\EngineGpuKernels\Macros.cuh">
       <Filter>Interface</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\source\EngineGpuKernels\ParameterCalculator.cuh">
+      <Filter>Impl\Device</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Impl">
@@ -170,5 +173,8 @@
     <CudaCompile Include="..\..\..\source\EngineGpuKernels\CudaSimulation.cu">
       <Filter>Interface</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

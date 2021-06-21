@@ -83,7 +83,9 @@ __inline__ __device__ void WeaponFunction::processing(Token* token, SimulationDa
             }
         }
     }
-    if (cudaSimulationParameters.cellFunctionWeaponEnergyCost > 0) {
+    auto const cellFunctionWeaponEnergyCost =
+        ParameterCalculator::get(&SimulationParameters::cellFunctionWeaponEnergyCost, cell->absPos);
+    if (cellFunctionWeaponEnergyCost > FP_PRECISION) {
         auto const cellEnergy = cell->getEnergy_safe();
         auto& pos = cell->absPos;
         float2 particleVel = (cell->vel * cudaSimulationParameters.radiationVelocityMultiplier)
@@ -94,7 +96,7 @@ __inline__ __device__ void WeaponFunction::processing(Token* token, SimulationDa
         data->cellMap.mapPosCorrection(particlePos);
 
         particlePos = particlePos - particleVel;  //because particle will still be moved in current time step
-        auto const radiationEnergy = min(cellEnergy, cudaSimulationParameters.cellFunctionWeaponEnergyCost);
+        auto const radiationEnergy = min(cellEnergy, cellFunctionWeaponEnergyCost);
         cell->changeEnergy_safe(-radiationEnergy);
         EntityFactory factory;
         factory.init(data);

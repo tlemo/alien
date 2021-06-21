@@ -132,6 +132,7 @@
     <ClInclude Include="..\..\..\source\EngineGpuKernels\MapSectionCollector.cuh" />
     <ClInclude Include="..\..\..\source\EngineGpuKernels\Math.cuh" />
     <ClInclude Include="..\..\..\source\EngineGpuKernels\MonitorKernels.cuh" />
+    <ClInclude Include="..\..\..\source\EngineGpuKernels\ParameterCalculator.cuh" />
     <ClInclude Include="..\..\..\source\EngineGpuKernels\Particle.cuh" />
     <ClInclude Include="..\..\..\source\EngineGpuKernels\ParticleProcessor.cuh" />
     <ClInclude Include="..\..\..\source\EngineGpuKernels\PhysicalActionKernels.cuh" />
@@ -156,6 +157,9 @@
     <ProjectReference Include="..\EngineInterface\EngineInterface.vcxproj">
       <Project>{29f70c63-c87a-42ae-98de-b6a5353bc2f3}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

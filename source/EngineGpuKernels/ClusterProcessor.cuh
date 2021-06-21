@@ -9,6 +9,7 @@
 #include "Map.cuh"
 #include "EntityFactory.cuh"
 #include "Tagger.cuh"
+#include "ParameterCalculator.cuh"
 #include "DEBUG_cluster.cuh"
 
 class ClusterProcessor
@@ -438,18 +439,28 @@ __inline__ __device__ void ClusterProcessor::processingRadiation_block()
     for (int cellIndex = _cellBlock.startIndex; cellIndex <= _cellBlock.endIndex; ++cellIndex) {
         Cell *cell = _cluster->cellPointers[cellIndex];
 
-        if (_data->numberGen.random() < cudaSimulationParameters.radiationProb) {
+        auto const radiationProb = ParameterCalculator::get(&SimulationParameters::radiationProb, cell->absPos);
+        if (_data->numberGen.random() < ParameterCalculator::get(&SimulationParameters::radiationProb, cell->absPos)) {
+            auto const radiationVelocityMultiplier =
+                ParameterCalculator::get(&SimulationParameters::radiationVelocityMultiplier, cell->absPos);
+            auto const radiationVelocityPerturbation =
+                ParameterCalculator::get(&SimulationParameters::radiationVelocityPerturbation, cell->absPos);
+            auto const radiationFactor =
+                ParameterCalculator::get(&SimulationParameters::radiationFactor, cell->absPos);
+            auto const radiationExponent =
+                ParameterCalculator::get(&SimulationParameters::radiationExponent, cell->absPos);
+
             auto const cellEnergy = cell->getEnergy_safe();
             auto &pos = cell->absPos;
-            float2 particleVel = (cell->vel * cudaSimulationParameters.radiationVelocityMultiplier)
-                + float2{ (_data->numberGen.random() - 0.5f) * cudaSimulationParameters.radiationVelocityPerturbation,
-                         (_data->numberGen.random() - 0.5f) * cudaSimulationParameters.radiationVelocityPerturbation };
+            float2 particleVel = (cell->vel * radiationVelocityMultiplier)
+                + float2{ (_data->numberGen.random() - 0.5f) * radiationVelocityPerturbation,
+                         (_data->numberGen.random() - 0.5f) * radiationVelocityPerturbation };
             float2 particlePos = pos + Math::normalized(particleVel) * 1.5f;
             _data->cellMap.mapPosCorrection(particlePos);
 
             particlePos = particlePos - particleVel;	//because particle will still be moved in current time step
-            float radiationEnergy = powf(cellEnergy, cudaSimulationParameters.radiationExponent) * cudaSimulationParameters.radiationFactor;
-            radiationEnergy = radiationEnergy / cudaSimulationParameters.radiationProb;
+            float radiationEnergy = powf(cellEnergy, radiationExponent) * radiationFactor;
+            radiationEnergy = radiationEnergy / radiationProb;
             radiationEnergy = 2 * radiationEnergy * _data->numberGen.random();
             if (cellEnergy > 1) {
                 if (radiationEnergy > cellEnergy - 1) {
