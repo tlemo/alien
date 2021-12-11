@@ -25,25 +25,36 @@ _DisplaySettingsDialog::_DisplaySettingsDialog(GLFWwindow* window)
     _desktopVideoMode = glfwGetVideoMode(primaryMonitor);
 
     auto optimalVideoMode = getOptimalVideoModeIndex();
-    _videoModeSelection =
-        GlobalSettings::getInstance().getIntState("settings.display.video mode", optimalVideoMode);
+
+    auto& settings = GlobalSettings::getInstance();
+    _videoModeSelection = settings.getIntState(GlobalSettings::VideoMode, optimalVideoMode);
+    _fullscreen = settings.getBoolState(GlobalSettings::Fullscreen, false);
 
     auto videoModeStrings = createVideoModeStrings();
     auto loggingService = ServiceLocator::getInstance().getService<LoggingService>();
     loggingService->logMessage(
         Priority::Important, "desktop video settings is " + createVideoModeString(*_desktopVideoMode));
 
-    _origVideoModeSelection = _videoModeSelection;
-    if (_videoModeSelection > 0) {
-        loggingService->logMessage(Priority::Important, "switching to  " + videoModeStrings[_videoModeSelection]);
-        auto const& mode = _videoModes[_videoModeSelection - 1];
-        glfwSetWindowMonitor(_window, primaryMonitor, 0, 0, mode.width, mode.height, mode.refreshRate);
+    if (_fullscreen) {
+        _origVideoModeSelection = _videoModeSelection;
+        if (_videoModeSelection > 0) {
+            loggingService->logMessage(Priority::Important, "switching to  " + videoModeStrings[_videoModeSelection]);
+            auto const& mode = _videoModes[_videoModeSelection - 1];
+            glfwSetWindowMonitor(_window, primaryMonitor, 0, 0, mode.width, mode.height, mode.refreshRate);
+        }
+    } else {
+        /*
+        glfwSetWindowMonitor(_window, nullptr, 0, 0, _width, _height, GLFW_DONT_CARE);
+        glfwSetWindowSize(_window, _width, _height);
+        */
     }
 }
 
 _DisplaySettingsDialog::~_DisplaySettingsDialog()
 {
-    GlobalSettings::getInstance().setIntState("settings.display.video mode", _videoModeSelection);
+    auto& settings = GlobalSettings::getInstance();
+    settings.setIntState(GlobalSettings::VideoMode, _videoModeSelection);
+    settings.setBoolState(GlobalSettings::Fullscreen, _fullscreen);
 }
 
 void _DisplaySettingsDialog::process()
@@ -67,6 +78,9 @@ void _DisplaySettingsDialog::process()
         if (prevVideoModeSelection != _videoModeSelection) {
             onSetVideoMode();
         }
+
+        ImGui::Checkbox("Fullscreen", &_fullscreen);
+
         AlienImGui::Separator();
 
         if (ImGui::Button("OK")) {
@@ -102,7 +116,7 @@ void _DisplaySettingsDialog::onSetVideoMode()
     auto videoModeStrings = createVideoModeStrings();
     loggingService->logMessage(Priority::Important, "switching video settings to " + videoModeStrings[_videoModeSelection]);
 
-    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    GLFWmonitor* primaryMonitor = _fullscreen ? glfwGetPrimaryMonitor() : nullptr;
     if (_videoModeSelection == 0) {
         glfwSetWindowMonitor(
             _window,

@@ -29,5 +29,10 @@ private:
 
     //0 = desktop and 1, ..., _videoModesCount = possible video modes
     int _videoModeSelection = 0;
-    int _origVideoModeSelection = 0;  
+    int _origVideoModeSelection = 0;
+
+    int _origWindowWidth = 0;
+    int _origWindowHeight = 0;
+
+    bool _fullscreen = false;
 };

@@ -14,7 +14,7 @@ private:
     struct GlfwData
     {
         GLFWwindow* window;
-        GLFWvidmode const* mode;
+        //GLFWvidmode const* mode;
         char const* glsl_version;
     };
     GlfwData initGlfw();

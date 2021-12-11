@@ -99,11 +99,15 @@ _MainWindow::_MainWindow(SimulationController const& simController, SimpleLogger
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
+    int width = 0;
+    int height = 0;
+    glfwGetWindowSize(glfwData.window, &width, &height);
+
     auto worldSize = _simController->getWorldSize();
     _viewport = boost::make_shared<_Viewport>();
     _viewport->setCenterInWorldPos({toFloat(worldSize.x) / 2, toFloat(worldSize.y) / 2});
     _viewport->setZoomFactor(4.0f);
-    _viewport->setViewSize(IntVector2D{glfwData.mode->width, glfwData.mode->height});
+    _viewport->setViewSize(IntVector2D{width, height});
     _uiController = boost::make_shared<_UiController>();
     _autosaveController = boost::make_shared<_AutosaveController>(_simController);
 
@@ -200,6 +204,14 @@ void _MainWindow::shutdown()
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
+    int width = 0;
+    int height = 0;
+    glfwGetWindowSize(_window, &width, &height);
+
+    auto& settings = GlobalSettings::getInstance();
+    settings.setIntState(GlobalSettings::WindowWidth, width);
+    settings.setIntState(GlobalSettings::WindowHeight, height);
+
     glfwDestroyWindow(_window);
     glfwTerminate();
 
@@ -237,26 +249,20 @@ auto _MainWindow::initGlfw() -> GlfwData
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
-    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-/*
-    int count;
-    primaryMonitor = glfwGetMonitors(&count)[1];
-*/
-    auto mode = glfwGetVideoMode(primaryMonitor);
-    auto screenWidth = mode->width;
-    auto screenHeight = mode->height;
+    auto& settings = GlobalSettings::getInstance();
+    const auto window_width = settings.getIntState(GlobalSettings::WindowWidth, GlobalSettings::DefaultWindowWidth);
+    const auto window_height = settings.getIntState(GlobalSettings::WindowHeight, GlobalSettings::DefaultWindowHeight);
 
-    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "alien", primaryMonitor, NULL);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "alien", nullptr, nullptr);
     if (window == NULL) {
         throw std::runtime_error("Failed to create window.");
     }
-//    glfwSetWindowMonitor(window, primaryMonitor, 0, 0, 2560, 1440/*1920, 1080*/, 120);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSwapInterval(1);  // Enable vsync
 
-    return {window, mode, glsl_version};
+    return {window, glsl_version};
 }
 
 void _MainWindow::processUninitialized()
