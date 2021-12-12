@@ -85,6 +85,8 @@ _MainWindow::_MainWindow(SimulationController const& simController, SimpleLogger
 
     _styleRepository = boost::make_shared<_StyleRepository>();
 
+    io.FontGlobalScale = 2.0;
+
 //    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
