@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Definitions.h"
+#include "EngineInterface/OverlayDescriptions.h"
 #include "EngineImpl/Definitions.h"
 #include "Definitions.h"
 
@@ -8,6 +9,7 @@ class _SimulationView
 {
 public:
     _SimulationView(
+        StyleRepository const& styleRepository,
         SimulationController const& simController,
         ModeWindow const& modeWindow,
         Viewport const& viewport);
@@ -31,14 +33,15 @@ private:
     void middleMouseButtonHold(IntVector2D const& viewPos);
     void middleMouseButtonReleased();
 
-    void requestImageFromSimulation();
+    void updateImageFromSimulation();
 
     //widgets
-    Viewport _viewport;
     SimulationScrollbar _scrollbarX;
     SimulationScrollbar _scrollbarY;
-    ModeWindow _modeWindow;
 
+    //overlay
+    boost::optional<OverlayDescription> _overlay;
+    
     //shader data
     unsigned int _vao, _vbo, _ebo;
     unsigned int _fbo;
@@ -52,5 +55,8 @@ private:
     boost::optional<RealVector2D> _worldPosForMovement;
     boost::optional<IntVector2D> _prevMousePosInt;
 
+    Viewport _viewport;
+    ModeWindow _modeWindow;
+    StyleRepository _styleRepository;
     SimulationController _simController;
 };

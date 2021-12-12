@@ -114,7 +114,7 @@ _MainWindow::_MainWindow(SimulationController const& simController, SimpleLogger
     _editorController =
         boost::make_shared<_EditorController>(_simController, _viewport, _styleRepository);
     _modeWindow = boost::make_shared<_ModeWindow>(_editorController);
-    _simulationView = boost::make_shared<_SimulationView>(_simController, _modeWindow, _viewport);
+    _simulationView = boost::make_shared<_SimulationView>(_styleRepository, _simController, _modeWindow, _viewport);
     simulationViewPtr = _simulationView.get();
     _statisticsWindow = boost::make_shared<_StatisticsWindow>(_simController);
     _temporalControlWindow = boost::make_shared<_TemporalControlWindow>(_simController, _styleRepository, _statisticsWindow);
@@ -341,7 +341,6 @@ void _MainWindow::processFinishedLoading()
 
 void _MainWindow::renderSimulation()
 {
-    ImGui::Render();
     int display_w, display_h;
     glfwGetFramebufferSize(_window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
@@ -351,6 +350,7 @@ void _MainWindow::renderSimulation()
         glClearColor(0, 0, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     }
+    ImGui::Render();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

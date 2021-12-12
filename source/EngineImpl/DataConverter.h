@@ -3,6 +3,7 @@
 #include "EngineInterface/Definitions.h"
 #include "EngineInterface/Descriptions.h"
 #include "EngineInterface/ChangeDescriptions.h"
+#include "EngineInterface/OverlayDescriptions.h"
 #include "EngineInterface/SimulationParameters.h"
 #include "EngineGpuKernels/AccessTOs.cuh"
 #include "Definitions.h"
@@ -12,14 +13,11 @@
 class DataConverter
 {
 public:
-    DataConverter(
-        DataAccessTO& dataTO,
-        SimulationParameters const& parameters,
-        GpuSettings const& gpuConstants);
+    DataConverter(SimulationParameters const& parameters, GpuSettings const& gpuConstants);
 
-	void updateData(DataChangeDescription const& data);
-
-	DataDescription getDataDescription() const;
+    DataDescription convertAccessTOtoDataDescription(DataAccessTO const& dataTO);
+    OverlayDescription convertAccessTOtoOverlayDescription(DataAccessTO const& dataTO);
+    void convertDataDescriptionToAccessTO(DataAccessTO& result, DataChangeDescription const& description);
 
 private:
 	struct CreateClusterReturnData
@@ -28,24 +26,25 @@ private:
         std::unordered_map<int, int> cellTOIndexToCellDescIndex;
 	};
     CreateClusterReturnData scanAndCreateClusterDescription(
+        DataAccessTO const& dataTO,
         int startCellIndex,
         std::unordered_set<int>& freeCellIndices) const;
-    CellDescription createCellDescription(int cellIndex) const;
+    CellDescription createCellDescription(DataAccessTO const& dataTO, int cellIndex) const;
 
-	void addCell(CellChangeDescription const& cellToAdd, unordered_map<uint64_t, int>& cellIndexTOByIds);
-    void addParticle(ParticleDescription const& particleDesc);
+	void addCell(
+        DataAccessTO const& dataTO,
+        CellChangeDescription const& cellToAdd,
+        unordered_map<uint64_t, int>& cellIndexTOByIds);
+    void addParticle(DataAccessTO const& dataTO, ParticleDescription const& particleDesc);
 
-	void setConnections(CellChangeDescription const& cellToAdd, unordered_map<uint64_t, int> const& cellIndexByIds);
+	void setConnections(
+        DataAccessTO const& dataTO,
+        CellChangeDescription const& cellToAdd,
+        unordered_map<uint64_t, int> const& cellIndexByIds);
 
-    int convertStringAndReturnStringIndex(std::string const& s);
+    int convertStringAndReturnStringIndex(DataAccessTO const& dataTO, std::string const& s);
 
 private:
-	DataAccessTO& _dataTO;
 	SimulationParameters _parameters;
     GpuSettings _gpuConstants;
-
-	std::unordered_set<uint64_t> _cellIdsToDelete;
-	std::unordered_set<uint64_t> _particleIdsToDelete;
-	std::unordered_map<uint64_t, CellChangeDescription> _cellToModifyById;
-	std::unordered_map<uint64_t, ParticleChangeDescription> _particleToModifyById;
 };
